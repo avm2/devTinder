@@ -5,6 +5,11 @@ const User = require("./models/user.js");
 const app = express();
 const {adminAuth} = require("./middleware/auth.js")
 
+
+
+//this middleware convert JSON to JS object
+app.use(express.json());
+
 // //this only match get http request
 // app.get("/user",(req,res) =>{
 //     res.send({firstName:"Aman", lastName:"verma"})
@@ -64,17 +69,40 @@ const {adminAuth} = require("./middleware/auth.js")
 // })
 
 app.post("/signup" , async(req,res) =>{
-   
-    //creating a new instance os user model
-    const user = new User({
-        firstName:"Aman",
-        lastName:"Verma",
-        age:22,
-        gender:"Male"
-    });
 
-    await user.save();
-    res.send("User added successfully")
+    //console.log(req.body)
+   
+   // creating a new instance os user model
+    const user = new User(req.body);
+    try{
+        await user.save();
+        res.send("User added successfully")
+    }catch(err){
+        res.status(400).send("Internal server error")
+    }
+
+})
+
+//get one user
+app.get("/user" , async(req,res) =>{
+    const userName = req.body.firstName;
+    try{
+        const user= await User.find({firstName:userName});
+        res.send(user);
+    }catch(error){
+        res.status(400).send("Something went wrong")
+    }
+})
+
+//feed API
+app.get("/feed" , async(req,res) =>{
+   
+    try{
+        const users= await User.find({});
+        res.send(users);
+    }catch(error){
+        res.status(400).send("Something went wrong")
+    }
 })
 
 connectDB().then(() =>{
