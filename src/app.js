@@ -5,12 +5,15 @@ const { validateSignUpData } = require("./utlis/validation.js");
 const User = require("./models/user.js");
 
 const app = express();
-const { adminAuth } = require("./middleware/auth.js");
+const { userAuth } = require("./middleware/auth.js");
 const bcrypt = require("bcrypt");
 const validator =require("validator");
+const cookieParser = require("cookie-parser")
+const jwt = require("jsonwebtoken");
 
 //this middleware convert JSON to JS object
 app.use(express.json());
+app.use(cookieParser()); 
 
 // //this only match get http request
 // app.get("/user",(req,res) =>{
@@ -110,6 +113,11 @@ app.post("/login", async(req,res) =>{
         const isPasswordValid = await bcrypt.compare(password,user.password);
 
         if(isPasswordValid){
+
+            //Create a JWt token
+            const token = await user.getJWT();
+
+            res.cookie("token", token);
             res.send("Login successfully");
         }else{
             throw new Error("Password is not correct");
@@ -120,39 +128,57 @@ app.post("/login", async(req,res) =>{
     }
 })
 
-//get one user
-app.get("/user", async (req, res) => {
-  const userName = req.body.firstName;
-  try {
-    const user = await User.find({ firstName: userName });
+// profile
+app.get("/profile",userAuth, async(req,res) =>{
+   try{
+    const user = req.user;
+
     res.send(user);
-  } catch (error) {
-    res.status(400).send("Something went wrong");
-  }
-});
+   }catch(err){
+    res.status(400).send("Error:"+ err.message  );
+   }
 
-//feed API
-app.get("/feed", async (req, res) => {
-  try {
-    const users = await User.find({});
-    res.send(users);
-  } catch (error) {
-    res.status(400).send("Something went wrong");
-  }
-});
 
-// delete user
+})
 
-app.delete("/user", async (req, res) => {
-  const userId = req.body.userId;
-  try {
-    //await User.findByIdAndDelete({_id:userId});
-    await User.findByIdAndDelete(userId);
-    res.send("User deleted successfully");
-  } catch (error) {
-    res.status(400).send("Something went wrong");
-  }
-});
+
+app.post("/sendingConnectionRequest",userAuth, async(req,res) =>{
+    res.send("Connection request sent!");
+})
+
+// //get one user
+// app.get("/user", async (req, res) => {
+//   const userName = req.body.firstName;
+//   try {
+//     const user = await User.find({ firstName: userName });
+//     res.send(user);
+//   } catch (error) {
+//     res.status(400).send("Something went wrong");
+//   }
+// });
+
+// //feed API
+// app.get("/feed", async (req, res) => {
+//   try {
+//     const users = await User.find({});
+//     res.send(users);
+//   } catch (error) {
+//     res.status(400).send("Something went wrong");
+//   }
+// });
+
+// // delete user
+
+// app.delete("/user", async (req, res) => {
+//   const userId = req.body.userId;
+//   try {
+//     //await User.findByIdAndDelete({_id:userId});
+//     await User.findByIdAndDelete(userId);
+//     res.send("User deleted successfully");
+//   } catch (error) {
+//     res.status(400).send("Something went wrong");
+//   }
+// });
 
 //update user
 
