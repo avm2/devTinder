@@ -110,7 +110,7 @@ app.post("/login", async(req,res) =>{
             throw new Error("Email id not present in DB");
         }
 
-        const isPasswordValid = await bcrypt.compare(password,user.password);
+        const isPasswordValid = await user.validatePassword(password)
 
         if(isPasswordValid){
 
