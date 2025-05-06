@@ -1,15 +1,19 @@
 const express = require("express");
 const { connectDB } = require("./config/database.js");
 const { validateSignUpData } = require("./utlis/validation.js");
-
-const User = require("./models/user.js");
-
-const app = express();
-const { userAuth } = require("./middleware/auth.js");
-const bcrypt = require("bcrypt");
-const validator =require("validator");
 const cookieParser = require("cookie-parser")
-const jwt = require("jsonwebtoken");
+const User = require("./models/user.js");
+const app = express();
+// const { userAuth } = require("./middleware/auth.js");
+// const bcrypt = require("bcrypt");
+// const validator =require("validator");
+
+
+//import router
+const authRouter = require("./routers/auth.js");
+const profileRouter = require("./routers/profile.js");
+const requestRouter = require("./routers/request.js");
+
 
 //this middleware convert JSON to JS object
 app.use(express.json());
@@ -69,82 +73,80 @@ app.use(cookieParser());
 //     res.send("2nd response");
 // })
 
-app.post("/signup", async (req, res) => {
-  //console.log(req.body)
+// app.post("/signup", async (req, res) => {
+//   //console.log(req.body)
 
-  // creating a new instance os user model
-  const user = new User(req.body);
-  try {
-    // validation of data
-    validateSignUpData(req);
+//   // creating a new instance os user model
+//   const user = new User(req.body);
+//   try {
+//     // validation of data
+//     validateSignUpData(req);
 
-    //encrypt password
-    const {firstName, lastName, emailId, password} = req.body;
-    const passwordHash = await bcrypt.hash(password,10);
+//     //encrypt password
+//     const {firstName, lastName, emailId, password} = req.body;
+//     const passwordHash = await bcrypt.hash(password,10);
 
     
-    await user.save({
-        firstName,
-        lastName,
-        emailId,
-        password:passwordHash
-    });
-    res.send("User added successfully");
-  } catch (err) {
-    res.status(400).send("Internal server error");
-  }
-});
+//     await user.save({
+//         firstName,
+//         lastName,
+//         emailId,
+//         password:passwordHash
+//     });
+//     res.send("User added successfully");
+//   } catch (err) {
+//     res.status(400).send("Internal server error");
+//   }
+// });
 
 //login
-app.post("/login", async(req,res) =>{
-    try{
-        const {emailId, password} = req.body;
-        const isValidEmail = validator.isEmail(emailId);
-        if(!isValidEmail){
-            throw new Error("Enter valid emailId")
-        }
+// app.post("/login", async(req,res) =>{
+//     try{
+//         const {emailId, password} = req.body;
+//         const isValidEmail = validator.isEmail(emailId);
+//         if(!isValidEmail){
+//             throw new Error("Enter valid emailId")
+//         }
 
-        const user = await User.findOne({emailId:emailId});
+//         const user = await User.findOne({emailId:emailId});
 
-        if(!user){
-            throw new Error("Email id not present in DB");
-        }
+//         if(!user){
+//             throw new Error("Email id not present in DB");
+//         }
 
-        const isPasswordValid = await user.validatePassword(password)
+//         const isPasswordValid = await user.validatePassword(password)
 
-        if(isPasswordValid){
+//         if(isPasswordValid){
 
-            //Create a JWt token
-            const token = await user.getJWT();
+//             //Create a JWt token
+//             const token = await user.getJWT();
 
-            res.cookie("token", token);
-            res.send("Login successfully");
-        }else{
-            throw new Error("Password is not correct");
-        }
+//             res.cookie("token", token);
+//             res.send("Login successfully");
+//         }else{
+//             throw new Error("Password is not correct");
+//         }
 
-    }catch(error){
-        res.status(400).send("Internal server error");
-    }
-})
+//     }catch(error){
+//         res.status(400).send("Internal server error");
+//     }
+// })
 
 // profile
-app.get("/profile",userAuth, async(req,res) =>{
-   try{
-    const user = req.user;
+// app.get("/profile",userAuth, async(req,res) =>{
+//    try{
+//     const user = req.user;
 
-    res.send(user);
-   }catch(err){
-    res.status(400).send("Error:"+ err.message  );
-   }
-
-
-})
+//     res.send(user);
+//    }catch(err){
+//     res.status(400).send("Error:"+ err.message  );
+//    }
 
 
-app.post("/sendingConnectionRequest",userAuth, async(req,res) =>{
-    res.send("Connection request sent!");
-})
+// })
+
+
+
 
 // //get one user
 // app.get("/user", async (req, res) => {
